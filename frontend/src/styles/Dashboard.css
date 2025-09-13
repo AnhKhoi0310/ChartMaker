@@ -10,6 +10,30 @@ body, html, #root {
   display: flex;
   height: 100vh;
   width: 100vw;
+  min-height: 0;
+}
+
+.split-root {
+  height: 100vh !important;
+  min-height: 0;
+}
+
+/* react-split gutter styling for drag handle */
+.gutter {
+  background-color: #c7e0ff;
+  background-clip: padding-box;
+  transition: background 0.2s;
+}
+.gutter-horizontal {
+  cursor: col-resize;
+  width: 8px;
+}
+.gutter-vertical {
+  cursor: row-resize;
+  height: 8px;
+}
+.gutter:hover {
+  background-color: #7bb6f7;
 }
 
 .sandbox-panel {

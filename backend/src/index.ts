@@ -3,7 +3,7 @@ import cors from "cors";
 import chartRoutes from "./routes/chartRoutes";
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());

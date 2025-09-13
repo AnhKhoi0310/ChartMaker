@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Split from "react-split";
 import SandboxPanel from "./components/SandboxPanel";
 import ChartPanel from "./components/ChartPanel"; 
 import ChatPanel from "./components/ChatPanel";
@@ -47,7 +48,7 @@ function App() {
       formData.append("dtypes", JSON.stringify(dtypes));
       formData.append("describe", JSON.stringify(describe));
       
-      const res = await axios.post("http://localhost:5000/chat", formData, {
+      const res = await axios.post("https://chart-maker-khoi-5097fe99ba12.herokuapp.com/chat", formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
       // setMessages(prev => [...prev, { sender: "bot", text: res.data.reply }]);
@@ -65,36 +66,51 @@ function App() {
     }
   };
 
+  // Responsive: horizontal split for desktop, vertical for mobile
+  const isMobile = window.innerWidth < 900;
+
   return (
-    <div className="dashboard-container">
-      <SandboxPanel
-        file={file}
-        tableHeaders={tableHeaders}
-        tableData={tableData}
-        columns={collumns}
-        shape={shape}
-        dtypes={dtypes}
-        describe={describe}
-        summary={summary}
-        notebookCode={notebookCode}
-        onFileUpload={handleFileUpload}
-        setNotebookCode={setNotebookCode}
-      />
-      <ChartPanel chartImage={chartImage} />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+    <Split
+      direction={isMobile ? "vertical" : "horizontal"}
+      sizes={[33, 34, 33]}
+      minSize={isMobile ? [150, 150, 150] : [200, 200, 200]}
+      expandToMin={true}
+      gutterSize={8}
+      className="dashboard-container split-root"
+      style={{ height: "100vh", width: "100vw" }}
+    >
+  <div style={{ height: "100%", minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
+        <SandboxPanel
+          file={file}
+          tableHeaders={tableHeaders}
+          tableData={tableData}
+          columns={collumns}
+          shape={shape}
+          dtypes={dtypes}
+          describe={describe}
+          summary={summary}
+          notebookCode={notebookCode}
+          onFileUpload={handleFileUpload}
+          setNotebookCode={setNotebookCode}
+        />
+      </div>
+  <div style={{ height: "100%", minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
+        <ChartPanel chartImage={chartImage} />
+      </div>
+  <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, overflow: 'auto' }}>
         <ChatPanel messages={messages} onSend={handleSend} />
         {notebookCode && (
-          <div style={{  background: '#e3f0ff', borderRadius: 8, padding: 16, boxShadow: '0 1px 6px rgba(0,40,120,0.04)' }}>
+          <div style={{ background: '#e3f0ff', borderRadius: 8, padding: 16, boxShadow: '0 1px 6px rgba(0,40,120,0.04)', marginTop: 16 }}>
             <h3 style={{ color: '#2a4d7a', marginBottom: 8 }}>Generated Jupyter Code</h3>
             <textarea
               value={notebookCode}
               onChange={e => setNotebookCode(e.target.value)}
-              style={{ width: '100%', minHeight: 400, fontFamily: 'monospace', fontSize: 14, borderRadius: 8, border: '1px solid #c7e0ff', background: '#f8fbff', color: '#2a4d7a', padding: 12, resize: 'vertical' }}
+              style={{ width: '100%', minHeight: 200, fontFamily: 'monospace', fontSize: 14, borderRadius: 8, border: '1px solid #c7e0ff', background: '#f8fbff', color: '#2a4d7a', padding: 12, resize: 'vertical' }}
             />
           </div>
         )}
       </div>
-    </div>
+    </Split>
   );
 }
 

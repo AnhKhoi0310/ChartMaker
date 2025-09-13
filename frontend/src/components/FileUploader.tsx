@@ -1,0 +1,71 @@
+import React from "react";
+import Papa from "papaparse";
+import * as XLSX from "xlsx";
+import getSChema from "../functions/getSchema";
+import { on } from "events";
+interface FileUploaderProps {
+  onFileUpload: (file: File, data: any[], headers: string[], collumns: string[], shape :string[], dtypes:string[], describe: string[]) => void;
+}
+
+const FileUploader: React.FC<FileUploaderProps> = ({ onFileUpload }) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (ext === "csv") {
+      // console.log("CSV file selected");
+      Papa.parse(file, {
+        header: true,
+        complete: async (results) => {
+          const data = results.data as any[];
+          const headers = results.meta.fields || [];
+          try {
+            const schemaResult = await getSChema(file);
+            if (schemaResult) {
+              const { columns, shape, dtypes, describe } = schemaResult;
+              // console.log("info:", columns, shape, dtypes);
+              // console.log("Describe:", describe);
+              onFileUpload(file, data, headers,columns, shape.map(String), dtypes, describe);
+            } else {
+              console.warn("getSChema did not return a schema object.");
+            }
+          } catch (error) {
+            console.error("Error getting schema:", error);
+          }
+        },
+      });
+    } else if (ext === "xlsx" || ext === "xls") {
+      // console.log("Excel file selected");
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const data = new Uint8Array(evt.target?.result as ArrayBuffer);
+        const columns: string[] = [];
+        const shape: string[] = [];
+        const dtypes: string[] = [];
+        const describe: string[] = [];
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+        const headers = json[0] as string[];
+        const rows = json.slice(1).map(row =>
+          Object.fromEntries(headers.map((h, i) => [h, row[i]]))
+        );
+        // onFileUpload(file, data, headers,columns, shape, dtypes, describe);
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      alert("Unsupported file type");
+    }
+  };
+
+  return (
+    <input
+      type="file"
+      accept=".csv, .xlsx, .xls"
+      onChange={handleFileChange}
+    />
+  );
+};
+
+export default FileUploader;

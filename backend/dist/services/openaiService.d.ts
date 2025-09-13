@@ -1,0 +1,2 @@
+export declare function generateChartCode(message: string, columns: string[], shape: [number, number], dtypes: Record<string, string>, describe: Record<string, any>, filePath: string): Promise<string>;
+//# sourceMappingURL=openaiService.d.ts.map

@@ -7,6 +7,9 @@ import fs from "fs";
 
 const router = express.Router();
 const upload = multer({ dest: path.join(__dirname, "../../uploads") });
+
+// In-memory conversation history (per server instance)
+let conversationHistory: Array<{ role: 'user' | 'bot', content: string }> = [];
 // Chat endpoint: receives prompt and file, returns code and chart
 router.post("/chat", upload.single("file"), async (req, res) => {
   console.log("Received /chat request");
@@ -36,12 +39,24 @@ router.post("/chat", upload.single("file"), async (req, res) => {
     }
 
     // Pass the correct filePath to OpenAI and Python
-    const code = await generateChartCode(message, columns, shape, dtypes, describe, filePath);
+
+    // Add user prompt to conversation history
+    conversationHistory.push({ role: 'user', content: message });
+
+    // Pass conversation history to OpenAI
+    // Map to OpenAI format: {role: 'user'|'assistant', content: string}
+    const openaiHistory = conversationHistory.map(msg => ({
+      role: msg.role === 'bot' ? 'assistant' as const : 'user' as const,
+      content: msg.content
+    }));
+
+    // Generate code with conversation context
+    const code = await generateChartCode(message, columns, shape, dtypes, describe, filePath, openaiHistory);
     console.log("Generated code:", code);
 
-    // Save code to a file for debugging/sandbox display if needed
-    const codePath = path.join(__dirname, `../../uploads/${fileId}.py`);
-    fs.writeFileSync(codePath, code);
+  // Save code to a file for debugging/sandbox display if needed
+  const codePath = path.join(__dirname, `../../uploads/${fileId}.py`);
+  fs.writeFileSync(codePath, code);
 
     // The chart should be saved as <fileId>_chart.png (not .py_chart.png)
     const chartPath = path.join(__dirname, `../../uploads/${fileId}_chart.png`);
@@ -70,6 +85,8 @@ router.post("/chat", upload.single("file"), async (req, res) => {
         } else {
           console.log('Chart image NOT found:', chartPath);
         }
+        // Add bot/code output to conversation history
+        conversationHistory.push({ role: 'bot', content: code });
         res.json({ code, reply: code, result: output, chartImage });
       } else {
         res.status(500).json({ error: errorOutput });

@@ -20,7 +20,7 @@ body, html, #root {
 
 /* react-split gutter styling for drag handle */
 .gutter {
-  background-color: #c7e0ff;
+  background-color: #e5edf6;
   background-clip: padding-box;
   transition: background 0.2s;
 }

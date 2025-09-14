@@ -55,16 +55,21 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFileUpload }) => {
       };
       reader.readAsArrayBuffer(file);
     } else {
-      alert("Unsupported file type");
+      alert("Only .csv files are supported.");
     }
   };
 
-  return (
-    <input
-      type="file"
-      accept=".csv, .xlsx, .xls"
-      onChange={handleFileChange}
-    />
+   return (
+    <div>
+      <div style={{ marginBottom: 8, color: '#2a4d7a', fontWeight: 500 }}>
+        Currently only support .csv file
+      </div>
+      <input
+        type="file"
+        accept=".csv"
+        onChange={handleFileChange}
+      />
+    </div>
   );
 };
 

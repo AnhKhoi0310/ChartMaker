@@ -8,22 +8,24 @@ const ChartPanel: React.FC<ChartPanelProps> = ({ chartImage }) => {
   const imgSrc = chartImage
     ? (chartImage.startsWith('data:image') ? chartImage : `data:image/png;base64,${chartImage}`)
     : '';
-
+ // Handle the chart image download
   const handleDownload = () => {
     if (!imgSrc) return;
-    const link = document.createElement('a');
-    link.href = imgSrc;
+    const link = document.createElement('a');// Create a temporary anchor element
+    link.href = imgSrc; // Set the link to the image source
     link.download = 'chart.png';
-    document.body.appendChild(link);
-    link.click();
+    document.body.appendChild(link);// Add the link to the DOM
+    link.click(); //  trigger a click
     document.body.removeChild(link);
   };
-
+  // Handle copying the chart image to clipboard
   const handleCopy = async () => {
     if (!imgSrc) return;
     try {
       const data = await fetch(imgSrc);
-      const blob = await data.blob();
+      const blob = await data.blob(); // Convert response to a Blob
+      
+      // Use Clipboard API to write image data to clipboard
       await navigator.clipboard.write([
         new window.ClipboardItem({ [blob.type]: blob })
       ]);
@@ -54,6 +56,7 @@ const ChartPanel: React.FC<ChartPanelProps> = ({ chartImage }) => {
           </div>
         </>
       ) : (
+        // Fallback text if no chart is available
         <div style={{ color: "#2a4d7a", opacity: 0.7, marginTop: 32 }}>
           No chart generated yet.
         </div>

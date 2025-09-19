@@ -12,7 +12,7 @@ export async function generateChartCode(
   dtypes: Record<string, string>,
   describe: Record<string, any>,
   filePath: string,
-  conversationHistory?: Array<{ role: 'user' | 'assistant', content: string }>
+  conversationHistory?: Array<{ role: 'user' | 'assistant', content: string }> // A list of previous messages 
 ): Promise<string> {
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,

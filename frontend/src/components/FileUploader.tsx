@@ -10,8 +10,8 @@ interface FileUploaderProps {
 const FileUploader: React.FC<FileUploaderProps> = ({ onFileUpload }) => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (!file) return;  // Exit if no file is selected
+    const ext = file.name.split(".").pop()?.toLowerCase();  // Get file extension
     if (ext === "csv") {
       // console.log("CSV file selected");
       Papa.parse(file, {
@@ -20,9 +20,11 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFileUpload }) => {
           const data = results.data as any[];
           const headers = results.meta.fields || [];
           try {
+             // Get schema info using custom getSChema function
             const schemaResult = await getSChema(file);
             if (schemaResult) {
               const { columns, shape, dtypes, describe } = schemaResult;
+              // Trigger callback with all parsed information
               // console.log("info:", columns, shape, dtypes);
               // console.log("Describe:", describe);
               onFileUpload(file, data, headers,columns, shape.map(String), dtypes, describe);
@@ -46,6 +48,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFileUpload }) => {
         const workbook = XLSX.read(data, { type: "array" });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
+        // Convert sheet to JSON (array of arrays)
         const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
         const headers = json[0] as string[];
         const rows = json.slice(1).map(row =>
@@ -55,7 +58,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFileUpload }) => {
       };
       reader.readAsArrayBuffer(file);
     } else {
-      alert("Only .csv files are supported.");
+      alert("Only .csv files are supported."); // Warn if unsupported file type
     }
   };
 

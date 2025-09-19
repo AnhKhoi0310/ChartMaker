@@ -12,7 +12,7 @@ interface SandboxPanelProps {
   summary: string;
   notebookCode: string;
   onFileUpload: (file: File, data: any[], headers: string[],collumns: string[], shape :string[], dtypes:string[], describe: string[]) => void;
-  setNotebookCode: (code: string) => void;
+  setNotebookCode: (code: string) => void;  // Function to update notebook code
 }
 
 const SandboxPanel: React.FC<SandboxPanelProps> = ({

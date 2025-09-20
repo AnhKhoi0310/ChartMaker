@@ -99,3 +99,4 @@ Multi-container setup for better scaling
 Save user history of charts (Create database, authentication)
 
 User can interact with the sandbox. 
+<img width="813" height="395" alt="image" src="https://github.com/user-attachments/assets/1ee47333-946c-4f81-a6f5-736a7d8922aa" />

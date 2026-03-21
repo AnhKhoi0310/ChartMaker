@@ -1,4 +1,4 @@
-import { OpenAI } from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
@@ -14,10 +14,8 @@ export async function generateChartCode(
   filePath: string,
   conversationHistory?: Array<{ role: 'user' | 'assistant', content: string }> // A list of previous messages 
 ): Promise<string> {
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-  console.log("Generating chart code with OpenAI...");
+  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
+  console.log("Generating chart code with Gemini...");
   // Read the first few rows of the file to get schema
   const ext: string = path.extname(filePath).toLowerCase();
   let schema: string = "";
@@ -37,32 +35,30 @@ The data file is located at: '${filePath}'. The data has the following columns: 
 The data shape is: [${shape.join(", ")}].
 The data types are: ${JSON.stringify(dtypes)}.
 The statistical description of the data is: ${JSON.stringify(describe)}.
-Always end the code with plt.savefig('${chartPath}') and do not use plt.show().
+
+Requirements:
+1. Always end the code with plt.savefig('${chartPath}') and do not use plt.show().
+2. Use modern seaborn API - if using palette without hue, assign the variable to hue parameter instead.
+3. Import necessary libraries: import pandas as pd, import matplotlib.pyplot as plt, import seaborn as sns, import numpy as np (as needed).
+4. Read the CSV file with pd.read_csv() and handle the file path correctly.
+5. Do not include any explanations or comments in the code.
 `;
+  // console.log("System prompt for Gemini:", systemPrompt);
+  const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
-  // Compose messages for OpenAI
-  let messages: Array<{ role: 'user' | 'assistant', content: string }> = [];
-  if (conversationHistory && conversationHistory.length > 0) {
-    messages = [
-      { role: 'user', content: systemPrompt },
-      ...conversationHistory
-    ];
-  } else {
-    messages = [
-      { role: 'user', content: systemPrompt }
-    ];
-  }
-
-  const response: OpenAI.Chat.Completions.ChatCompletion = await openai.chat.completions.create({
-    model: "gpt-4o",
-    messages,
-    max_tokens: 500,
-    temperature: 0.2,
+  // Prepare history for Gemini chat
+  const history = conversationHistory ? conversationHistory.map(msg => ({
+    role: msg.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: msg.content }],
+  })) : [];
+  // console.log("Conversation history for Gemini:", history);
+  const chat = model.startChat({
+    history,
   });
 
-  // Extract code from response
-  const code: string = response.choices && response.choices[0] && response.choices[0].message && response.choices[0].message.content
-    ? response.choices[0].message.content
-    : "";
+  const result = await chat.sendMessage(systemPrompt);
+  console.log("code result:", result);
+  const code = result.response.text();
+
   return code.replace(/```python|```/g, "").trim();
 }

@@ -23,6 +23,7 @@ function App() {
   const [summary, setSummary] = useState<string>("");
   const [notebookCode, setNotebookCode] = useState<string>("");
   const [chartImage, setChartImage] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleFileUpload = (selectedFile: File, data: any[], headers: string[],collumns: string[], shape :string[], dtypes:string[], describe: string[]) => {
     setFile(selectedFile);
@@ -37,6 +38,7 @@ function App() {
 
   const handleSend = async (msg: string) => {
     setMessages(prev => [...prev, { sender: "user", text: msg }]);
+    setIsLoading(true);
     try {
       const formData = new FormData();
       if (file) {
@@ -48,8 +50,11 @@ function App() {
       formData.append("dtypes", JSON.stringify(dtypes));
       formData.append("describe", JSON.stringify(describe));
       
-      const res = await axios.post("https://chart-maker-khoi-5097fe99ba12.herokuapp.com/chat", formData, {
-        headers: { "Content-Type": "multipart/form-data" }
+      setMessages(prev => [...prev, { sender: "bot", text: "Generating chart... (this may take a few seconds)" }]);
+      
+      const res = await axios.post("http://localhost:5000/chat", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        timeout: 120000 // 120 seconds timeout
       });
       // setMessages(prev => [...prev, { sender: "bot", text: res.data.reply }]);
       setNotebookCode(res.data.code || "");
@@ -62,7 +67,10 @@ function App() {
       setChartImage(res.data.chartImage || "");
     } catch (err) {
       console.error("Error sending message:", err);
-      setMessages(prev => [...prev, { sender: "bot", text: "Error from backend." }]);
+      const errorMsg = err instanceof Error ? err.message : "Error from backend";
+      setMessages(prev => [...prev, { sender: "bot", text: `Error: ${errorMsg}` }]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -98,7 +106,7 @@ function App() {
         <ChartPanel chartImage={chartImage} />
       </div>
   <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, overflow: 'auto' }}>
-        <ChatPanel messages={messages} onSend={handleSend} />
+        <ChatPanel messages={messages} onSend={handleSend} isLoading={isLoading} />
         {notebookCode && (
           <div style={{ background: '#e3f0ff', borderRadius: 8, padding: 16, boxShadow: '0 1px 6px rgba(0,40,120,0.04)', marginTop: 16 }}>
             <h3 style={{ color: '#2a4d7a', marginBottom: 8 }}>Generated Jupyter Code</h3>

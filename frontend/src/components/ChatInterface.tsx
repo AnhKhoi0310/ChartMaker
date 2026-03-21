@@ -8,13 +8,14 @@ interface Message {
 interface ChatInterfaceProps {
   messages: Message[];
   onSend: (msg: string) => void;
+  isLoading?: boolean;
 }
 // ChatInterface: displays a chat window with messages and an input box
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, onSend }) => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, onSend, isLoading }) => {
   const [input, setInput] = useState("");
 
   const handleSend = () => {
-    if (input.trim()) {// Only send non-empty messages
+    if (input.trim() && !isLoading) {// Only send non-empty messages and not while loading
       onSend(input);
       setInput("");// Clear input after sending
     }
@@ -35,9 +36,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, onSend }) => {
         onChange={e => setInput(e.target.value)} // Update state on input change
         onKeyDown={e => e.key === "Enter" && handleSend()} // Send message when pressing Enter
         placeholder="Type your prompt..."
-        style={{ width: "80%" }}
+        disabled={isLoading}
+        style={{ width: "80%", opacity: isLoading ? 0.6 : 1, cursor: isLoading ? 'not-allowed' : 'text' }}
       />
-      <button onClick={handleSend}>Send</button>
+      <button onClick={handleSend} disabled={isLoading} style={{ opacity: isLoading ? 0.6 : 1, cursor: isLoading ? 'not-allowed' : 'pointer' }}>
+        {isLoading ? "Generating..." : "Send"}
+      </button>
     </div>
   );
 };

@@ -62,7 +62,9 @@ router.post("/chat", upload.single("file"), async (req, res) => {
     const chartPath = path.join(__dirname, `../../uploads/${fileId}_chart.png`);
 
     // Run the code using spawn, passing the file path as needed
-    const pythonProcess = spawn("python3", [codePath]);
+    // Use 'python' for Windows, 'python3' for Linux/Mac
+    const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+    const pythonProcess = spawn(pythonCmd, [codePath]);
     let output = "";
     let errorOutput = "";
     pythonProcess.stdout.on("data", (data) => {
@@ -89,7 +91,9 @@ router.post("/chat", upload.single("file"), async (req, res) => {
         conversationHistory.push({ role: 'bot', content: code });
         res.json({ code, reply: code, result: output, chartImage });
       } else {
-        res.status(500).json({ error: errorOutput });
+        console.error("Python process exited with code:", exitCode);
+        console.error("Full error output:", errorOutput);
+        res.status(500).json({ error: `Python execution failed: ${errorOutput}` });
       }
     });
   } catch (err) {

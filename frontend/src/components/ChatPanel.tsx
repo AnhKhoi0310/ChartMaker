@@ -9,11 +9,12 @@ interface Message {
 interface ChatPanelProps {
   messages: Message[];
   onSend: (msg: string) => void;
+  isLoading?: boolean;
 }
 
-const ChatPanel: React.FC<ChatPanelProps> = ({ messages, onSend }) => (
+const ChatPanel: React.FC<ChatPanelProps> = ({ messages, onSend, isLoading }) => (
   <div className="chat-panel">
-    <ChatInterface messages={messages} onSend={onSend} />
+    <ChatInterface messages={messages} onSend={onSend} isLoading={isLoading} />
   </div>
 );
 

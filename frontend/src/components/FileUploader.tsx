@@ -2,7 +2,6 @@ import React from "react";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
 import getSChema from "../functions/getSchema";
-import { on } from "events";
 interface FileUploaderProps {
   onFileUpload: (file: File, data: any[], headers: string[], collumns: string[], shape :string[], dtypes:string[], describe: string[]) => void;
 }
@@ -39,12 +38,8 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFileUpload }) => {
     } else if (ext === "xlsx" || ext === "xls") {
       // console.log("Excel file selected");
       const reader = new FileReader();
-      reader.onload = (evt) => {
+      reader.onload = async (evt) => {
         const data = new Uint8Array(evt.target?.result as ArrayBuffer);
-        const columns: string[] = [];
-        const shape: string[] = [];
-        const dtypes: string[] = [];
-        const describe: string[] = [];
         const workbook = XLSX.read(data, { type: "array" });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
@@ -54,7 +49,19 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFileUpload }) => {
         const rows = json.slice(1).map(row =>
           Object.fromEntries(headers.map((h, i) => [h, row[i]]))
         );
-        // onFileUpload(file, data, headers,columns, shape, dtypes, describe);
+        try {
+          // Get schema info using custom getSChema function
+          const schemaResult = await getSChema(file);
+          if (schemaResult) {
+            const { columns, shape, dtypes, describe } = schemaResult;
+            // Trigger callback with all parsed information
+            onFileUpload(file, rows, headers, columns, shape.map(String), dtypes, describe);
+          } else {
+            console.warn("getSChema did not return a schema object.");
+          }
+        } catch (error) {
+          console.error("Error getting schema:", error);
+        }
       };
       reader.readAsArrayBuffer(file);
     } else {

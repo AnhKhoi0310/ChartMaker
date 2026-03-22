@@ -1,5 +1,3 @@
-import * as dfd from "danfojs";
-
 interface SchemaResult {
   columns: string[];
   shape: number[];
@@ -10,6 +8,7 @@ interface SchemaResult {
 const getSchema = async (file: File): Promise<SchemaResult | void> => {
   try {
     const ext = file.name.split(".").pop()?.toLowerCase();
+    const dfd = await import("danfojs");
     let df: any;
 
     if (ext === "csv") {

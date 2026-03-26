@@ -52,7 +52,7 @@ function App() {
       
       setMessages(prev => [...prev, { sender: "bot", text: "Generating chart... (this may take a few seconds)" }]);
       
-      const res = await axios.post("https://chartmaker-b020bfa117d7.herokuapp.com/chat", formData, {
+      const res = await axios.post(process.env.REACT_APP_BACKEND_ENDPOINT || "http://localhost:5000/chat", formData, {
         headers: { "Content-Type": "multipart/form-data" },
         timeout: 120000 // 120 seconds timeout
       });
